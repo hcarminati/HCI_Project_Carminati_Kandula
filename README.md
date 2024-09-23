@@ -16,9 +16,7 @@ This repository contains all the materials and documents related to the developm
 | Sree Kandula       |  kandula.s@northeastern.edu     |
 
 ## **Repository Contents**
-- **/designs**: Includes design assets such as wireframes, mockups, and prototypes.
 - **/src**: All source code and scripts related to the development of the app.
-- **/assets**: Media files such as images, videos, and branding materials.
 - **/tests**: Contains testing scripts and documentation.
 
 ## **Access Information**
