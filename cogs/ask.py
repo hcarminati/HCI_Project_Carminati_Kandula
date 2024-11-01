@@ -5,12 +5,11 @@ class Ask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="q", help="Ask the bot a question.")
+    @commands.command(name="ask", help="Ask the bot a question.")
     async def ask(self, ctx, *, question=None):
         if question is None:
-            await ctx.send("Please ask a question after `$q`.")
+            await ctx.send("Please include your question in the same message after `$ask`.")
         else:
-            # Here, you can add functionality to respond to the question.
             await ctx.send(f"You asked: {question}")
 
 async def setup(bot):
