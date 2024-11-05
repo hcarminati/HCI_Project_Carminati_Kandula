@@ -3,6 +3,7 @@ from discord.ext import commands
 import asyncio
 import datetime
 
+
 class Suggest(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -10,6 +11,10 @@ class Suggest(commands.Cog):
 
     @commands.command(name="suggest", help="Suggest a new channel.")
     async def suggest(self, ctx, *, channel_name: str):
+        if ctx.channel.name != "suggest-new-skill":
+            suggest_channel = discord.utils.get(ctx.guild.text_channels, name="suggest-new-skill")
+            await ctx.send(f"You can only use the $suggest command in the {suggest_channel.mention} channel.")
+            return
 
         # Check if the category the same suggested name already exists
         existing_category = discord.utils.get(ctx.guild.categories, name=f"{channel_name}")
@@ -22,7 +27,7 @@ class Suggest(commands.Cog):
             title="New Channel Suggestion",
             description=f"**Suggested Skill/Channel Name:** {channel_name}\n\n"
                         "React with 👍 to approve or 👎 to reject the suggestion. "
-                        "The poll will last for 1 minute.",
+                        "The poll will last for 24 hours.",
             color=discord.Color.blue()
         )
 
@@ -39,7 +44,7 @@ class Suggest(commands.Cog):
             'total_votes': 0,
         }
 
-        await asyncio.sleep(60)  # 60 seconds = 1 minute
+        await asyncio.sleep(86400)  # 86400 seconds = 24 hours
 
         # Fetch poll results
         poll = self.polls.pop(message.id, None)
@@ -91,7 +96,16 @@ class Suggest(commands.Cog):
                 poll['votes_no'] -= 1
 
             poll['total_votes'] = poll['votes_yes'] + poll['votes_no']
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.channel.name != "suggest-new-skill":
+            return
 
+        if message.content.startswith('$') and not message.content.startswith('$suggest'):
+            await message.delete()
+            await message.channel.send(
+                f"{message.author.mention}, you can only use the `$suggest` command in this channel.")
+            return
 
 async def setup(bot):
     await bot.add_cog(Suggest(bot))
