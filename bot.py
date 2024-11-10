@@ -12,6 +12,7 @@ GUILD = os.getenv("DISCORD_GUILD")
 intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True
+intents.members = True
 
 bot = commands.Bot(command_prefix="$", intents=intents)
 
@@ -23,5 +24,8 @@ async def on_ready():
     await bot.load_extension("cogs.ask")
     await bot.load_extension("cogs.complete")
     await bot.load_extension("cogs.suggest")
+    await bot.load_extension("cogs.join")
+    await bot.load_extension("cogs.available")
+
 
 bot.run(TOKEN)

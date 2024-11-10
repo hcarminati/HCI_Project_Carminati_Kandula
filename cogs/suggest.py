@@ -16,13 +16,13 @@ class Suggest(commands.Cog):
             await ctx.send(f"You can only use the $suggest command in the {suggest_channel.mention} channel.")
             return
 
-        # Check if the category the same suggested name already exists
         existing_category = discord.utils.get(ctx.guild.categories, name=f"{channel_name}")
         if existing_category:
             existing_channels = {channel.name: channel for channel in ctx.guild.text_channels}
             existing_channel = existing_channels[f"{channel_name}-lvl-1"]
             await ctx.send(f"A channel for learning about '{channel_name}' already exists {existing_channel.mention}")
             return
+
         embed = discord.Embed(
             title="New Channel Suggestion",
             description=f"**Suggested Skill/Channel Name:** {channel_name}\n\n"
@@ -32,8 +32,10 @@ class Suggest(commands.Cog):
         )
 
         message = await ctx.send(embed=embed)
-        await message.add_reaction('👍')  # Yes vote
-        await message.add_reaction('👎')  # No vote
+        await message.add_reaction('👍')
+        await message.add_reaction('👎')
+
+        await message.pin()
 
         self.polls[message.id] = {
             'channel_name': channel_name,
@@ -42,14 +44,13 @@ class Suggest(commands.Cog):
             'votes_yes': 0,
             'votes_no': 0,
             'total_votes': 0,
+            'reactors': []  # List to track users who reacted with 👍
         }
 
-        await asyncio.sleep(86400)  # 86400 seconds = 24 hours
+        await asyncio.sleep(2)  # 86400 seconds = 24 hours
 
-        # Fetch poll results
         poll = self.polls.pop(message.id, None)
         if poll:
-            # Calculate poll results
             message = await ctx.fetch_message(message.id)
             yes_percentage = (poll['votes_yes'] / poll['total_votes']) * 100 if poll['total_votes'] > 0 else 0
 
@@ -57,15 +58,43 @@ class Suggest(commands.Cog):
             if yes_percentage >= 25:
                 guild = ctx.guild
 
+                # Create the category for the skill
                 category = await guild.create_category(f"{poll['channel_name']}")
 
-                await guild.create_text_channel(f"{poll['channel_name']}-lvl-1", category=category)
-                await guild.create_text_channel(f"{poll['channel_name']}-lvl-2", category=category)
-                await guild.create_text_channel(f"{poll['channel_name']}-lvl-3", category=category)
+                # Create the channels for the skill levels
+                lvl_1_channel = await guild.create_text_channel(f"{poll['channel_name']}-lvl-1", category=category)
+                lvl_2_channel = await guild.create_text_channel(f"{poll['channel_name']}-lvl-2", category=category)
+                lvl_3_channel = await guild.create_text_channel(f"{poll['channel_name']}-lvl-3", category=category)
 
-                await message.reply(f"Poll concluded! A new category and channels for '{poll['channel_name']}' have been created.")
+                # Create roles for the skill levels
+                roles = []
+                for level in ['lvl-1', 'lvl-2', 'lvl-3']:
+                    role_name = f"{poll['channel_name']}-{level}"
+                    role = discord.utils.get(guild.roles, name=role_name)
+
+                    if not role:
+                        role = await guild.create_role(name=role_name)
+                    roles.append(role)
+
+                # Set channel permissions based on roles
+                await self.set_channel_permissions(lvl_1_channel, roles[0])
+                await self.set_channel_permissions(lvl_2_channel, roles[1])
+                await self.set_channel_permissions(lvl_3_channel, roles[2])
+
+                for user_id in poll['reactors']:
+                    user = ctx.guild.get_member(user_id)
+                    if user:
+                        role_lvl_1 = discord.utils.get(guild.roles, name=f"{poll['channel_name']}-lvl-1")
+                        if role_lvl_1 and role_lvl_1 not in user.roles:
+                            await user.add_roles(role_lvl_1)
+                            await lvl_1_channel.send(f"{user.mention} has been assigned the {role_lvl_1.name} role.")
+
+                await message.reply(
+                    f"Poll concluded! A new category and channels for '{poll['channel_name']}' have been created.")
             else:
                 await message.reply("Poll concluded! The new channel suggestion was rejected.")
+
+            await message.unpin()
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -77,6 +106,8 @@ class Suggest(commands.Cog):
 
             if reaction.emoji == '👍':
                 poll['votes_yes'] += 1
+                if user.id not in poll['reactors']:
+                    poll['reactors'].append(user.id)
             elif reaction.emoji == '👎':
                 poll['votes_no'] += 1
 
@@ -92,10 +123,13 @@ class Suggest(commands.Cog):
 
             if reaction.emoji == '👍':
                 poll['votes_yes'] -= 1
+                if user.id in poll['reactors']:
+                    poll['reactors'].remove(user.id)
             elif reaction.emoji == '👎':
                 poll['votes_no'] -= 1
 
             poll['total_votes'] = poll['votes_yes'] + poll['votes_no']
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.channel.name != "suggest-new-skill":
@@ -106,6 +140,18 @@ class Suggest(commands.Cog):
             await message.channel.send(
                 f"{message.author.mention}, you can only use the `$suggest` command in this channel.")
             return
+
+    async def set_channel_permissions(self, channel, role):
+        """Sets the permissions for the given channel to allow only the specific role to access it.
+            - Deny @everyone
+            - Allow specific skill role
+        """
+        overwrites = {
+            channel.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        }
+        await channel.edit(overwrites=overwrites)
+
 
 async def setup(bot):
     await bot.add_cog(Suggest(bot))
