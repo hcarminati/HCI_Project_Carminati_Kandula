@@ -1,8 +1,21 @@
+import os
+
 import discord
+import pymongo
 from discord.ext import commands
 import asyncio
 import datetime
 
+DB_USERNAME = os.environ.get('DISCORD_DB_USERNAME')
+DB_PASSWORD = os.environ.get('DISCORD_DB_PASSWORD')
+
+uri = f"mongodb+srv://{DB_USERNAME}:{DB_PASSWORD}@skillsharebot.5v7y9.mongodb.net/?retryWrites=true&w=majority&appName=skillsharebot"
+db = pymongo.MongoClient(uri)
+try:
+    db.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
 
 class Suggest(commands.Cog):
     def __init__(self, bot):
@@ -81,6 +94,8 @@ class Suggest(commands.Cog):
                 await self.set_channel_permissions(lvl_2_channel, roles[1])
                 await self.set_channel_permissions(lvl_3_channel, roles[2])
 
+                self.create_databases(channel_name)
+
                 for user_id in poll['reactors']:
                     user = ctx.guild.get_member(user_id)
                     if user:
@@ -151,6 +166,24 @@ class Suggest(commands.Cog):
             role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
         }
         await channel.edit(overwrites=overwrites)
+
+
+    def create_databases(self, name):
+        database_lvl1 = db[f"{name}-lvl-1"]
+        database_lvl1.create_collection("challenges")
+        database_lvl1.create_collection("challenge_counter")
+        database_lvl1.create_collection("users")
+
+
+        database_lvl2 = db[f"{name}-lvl-2"]
+        database_lvl2.create_collection("challenges")
+        database_lvl2.create_collection("challenge_counter")
+        database_lvl2.create_collection("users")
+
+        database_lvl3 = db[f"{name}-lvl-3"]
+        database_lvl3.create_collection("challenges")
+        database_lvl3.create_collection("challenge_counter")
+        database_lvl3.create_collection("users")
 
 
 async def setup(bot):
