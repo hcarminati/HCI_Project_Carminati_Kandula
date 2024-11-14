@@ -9,7 +9,7 @@ class Available(commands.Cog):
     @commands.command(name="available", help="List all available skill channels or search by skill name.")
     async def available(self, ctx, search: str = None):
         """Lists all the available skill categories and their levels or search for specific skills."""
-        if ctx.channel.name != "suggest-new-skill":
+        if ctx.channel.name != "join-new-skill":
             join_channel = discord.utils.get(ctx.guild.text_channels, name="join-new-skill")
             await ctx.send(f"You can only use the join command in the {join_channel.mention} channel.")
             return

@@ -10,7 +10,6 @@ client = OpenAI(
 def chat_gpt(prompt):
     response = client.chat.completions.create(
         model="gpt-4o-mini-2024-07-18",
-        # model="text-embedding-3-small",
         messages=[{"role": "user", "content": prompt}]
     )
     return response.choices[0].message.content.strip()
