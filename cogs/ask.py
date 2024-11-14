@@ -7,13 +7,13 @@ client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
 )
 
-# def chat_gpt(prompt):
-#     response = client.chat.completions.create(
-#         model="gpt-4o-mini-2024-07-18",
-#         # model="text-embedding-3-small",
-#         messages=[{"role": "user", "content": prompt}]
-#     )
-#     return response.choices[0].message.content.strip()
+def chat_gpt(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini-2024-07-18",
+        # model="text-embedding-3-small",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content.strip()
 
 class Ask(commands.Cog):
     def __init__(self, bot):
@@ -34,21 +34,21 @@ class Ask(commands.Cog):
             return
 
         username = ctx.author.name
-        await ctx.send(f"{username} asked: {question}")
+        await ctx.send(f"{ctx.author.mention} asked: {question}")
 
-        # try:
-        #     response = chat_gpt(question)
-        #     if response is None:
-        #         # If chat_gpt() returned None, that means there was an error.
-        #         await ctx.send(
-        #             "Something went wrong while trying to get an answer. Please try asking your question again.")
-        #     else:
-        #         await ctx.send(response)
-        #
-        # except Exception as e:
-        #     # Catch any unexpected errors and inform the user
-        #     await ctx.send("An unexpected error occurred. Please try again later.")
-        #     print(f"Unexpected error: {e}")
+        try:
+            response = chat_gpt(question)
+            if response is None:
+                # If chat_gpt() returned None, that means there was an error.
+                await ctx.send(
+                    "Something went wrong while trying to get an answer. Please try asking your question again.")
+            else:
+                await ctx.send(response)
+
+        except Exception as e:
+            # Catch any unexpected errors and inform the user
+            await ctx.send("An unexpected error occurred. Please try again later.")
+            print(f"Unexpected error: {e}")
 
 async def setup(bot):
     await bot.add_cog(Ask(bot))
