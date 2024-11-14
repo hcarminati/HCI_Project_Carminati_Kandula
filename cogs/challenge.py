@@ -41,25 +41,27 @@ class Challenge(commands.Cog):
         for channel in guild.text_channels:
             if channel.name in db.list_database_names():
                 database = db.get_database(channel.name)
-                challenges = database.get_collection('challenges')
-                challenge_counter = database.get_collection('challenge_counter').find_one({'_id': "counter"})
-                count = int(challenge_counter.get('count'));
-                print(count)
-                c = challenges.find_one({'_id': count})
-
-                if count > len(list(challenges.find({}))):
-                    bad_request ="Oops! get back to us later! We're coming up with some more ideas."
-                    print(bad_request)
-                    await channel.send(embed=bad_request)
-                else:
-                    if not c.get('completed'):
-                        challenge_message = self.create_embed(c)
-                        await channel.send(embed=challenge_message)
-                        self.update_challenge(challenges, c)
-                        # print(c.get('completed'))
-                    (database.get_collection('challenge_counter')
-                     .update_one({'_id': "counter"}, {"$set": {"count": count + 1}}))
-                    print(int(challenge_counter.get('count')))
+                try:
+                    challenges = database.get_collection('challenges')
+                    challenge_counter = database.get_collection('challenge_counter').find_one({'_id': "counter"})
+                    count = int(challenge_counter.get('count'));
+                    print(count)
+                    c = challenges.find_one({'_id': count})
+                    if count > len(list(challenges.find({}))):
+                        bad_request ="Oops! get back to us later! We're coming up with some more ideas."
+                        print(bad_request)
+                        await channel.send(embed=bad_request)
+                    else:
+                        if not c.get('completed'):
+                            challenge_message = self.create_embed(c)
+                            await channel.send(embed=challenge_message)
+                            self.update_challenge(challenges, c)
+                            # print(c.get('completed'))
+                        (database.get_collection('challenge_counter')
+                         .update_one({'_id': "counter"}, {"$set": {"count": count + 1}}))
+                        print(int(challenge_counter.get('count')))
+                except Exception as e:
+                    await channel.send(f"Oops! Looks like we don't have any content right now... Check in later!")
         print("************")
 
     # helper function to update the challenge counter
