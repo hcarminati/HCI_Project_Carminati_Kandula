@@ -9,7 +9,7 @@ class Join(commands.Cog):
     async def join(self, ctx, skill_name: str):
         """Allows users to join a skill channel by skill name."""
 
-        if ctx.channel.name != "suggest-new-skill":
+        if ctx.channel.name != "join-new-skill":
             join_channel = discord.utils.get(ctx.guild.text_channels, name="join-new-skill")
             await ctx.send(f"You can only use the join command in the {join_channel.mention} channel.")
             return
