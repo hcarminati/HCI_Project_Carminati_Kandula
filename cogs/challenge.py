@@ -1,4 +1,5 @@
 import os
+import random
 from pprint import pprint
 
 import discord
@@ -23,7 +24,7 @@ class Challenge(commands.Cog):
         print("cog initialized")
         # self.init_users()
 
-        # self.challenge.start()
+        self.challenge.start()
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 
@@ -107,16 +108,19 @@ class Challenge(commands.Cog):
             title=f"Challenge #{challenge.get('_id')}: \n{challenge.get('title')}",
             description=f"New challenge requested by {ctx.author.mention} \n\n\n"
                         f"{challenge.get('description')}\n\n\n"
-                        "The challenge will be open for 1 week.",
+                        "To complete this challenge, send your entry along with the command "
+                        "```$submit``` *and the # of the challenge* ",
             color=discord.Color.orange()
         )
         return embed
 
+    # embed for challenges.
     def create_embed(self, challenge,):
         embed = discord.Embed(
             title=f"Challenge #{challenge.get('_id')}: \n{challenge.get('title')}",
             description= f"{challenge.get('description')}\n\n\n"
-                        "The challenge will be open for 1 week.",
+                        "To complete this challenge, send your entry along with the command "
+                        "```$submit```  \n*and the # of the challenge* " ,
             color=discord.Color.orange()
         )
         return embed
@@ -125,6 +129,7 @@ class Challenge(commands.Cog):
     async def flex(self, ctx):
         await ctx.send('Tape! (but not any ordinary tape)')
 
+    # command to submit an entry to a challenge.
     @commands.command()
     async def submit(self, ctx, submission):
         if submission.isnumeric():
@@ -134,6 +139,7 @@ class Challenge(commands.Cog):
             await ctx.send(f"Congrats for completing Challenge #{c.get('_id')}\n"
                            f"{c.get('title')}\n You're doing great!")
 
+    #resets database. used only by us
     def init_users(self):
         guild = self.guild()
         for channel in guild.text_channels:
@@ -146,22 +152,30 @@ class Challenge(commands.Cog):
                     'completed_challenges': 0,
                 })
 
-
+    #Handles when the user completes challenges...
+    # and if their count of completed challenges has met the requirements to level up
     @commands.Cog.listener()
     async def on_message(self, message):
+        level = message.channel.name
         if message.content.startswith('$submit'):
-            database = db.get_database(message.channel.name)
-            user = database.get_collection('users').find_one({"_id": message.author.name})
+            author =  message.author.name
+            database = db.get_database(level)
+            user = database.get_collection('users').find_one({"_id": author})
             print(user)
-            completed_count = int(user.get('completed_challenges'))
-            (database.get_collection('users').update_one({"_id": message.author.name},
-                                                        {"$set": {'completed_challenges': completed_count + 1}}))
-            print(completed_count)
+            count = int(user.get('completed_challenges'))
+            (database.get_collection('users').update_one({"_id": author},
+                                                        {"$set": {'completed_challenges': count + 1}}))
+            print(f"{message.author.name} completed {count} challenges")
+            if count > 3 and level[:-1] != 3:
+                current_lvl = level[:-1]
+                next_lvl = int(level[-1]) + 1
+                role_skill_name = f"{current_lvl}{next_lvl}"
+                role = discord.utils.get(message.guild.roles, name=role_skill_name)
 
-            if (completed_count > 3):
-                print("f")
+                channel = discord.utils.get(message.guild.text_channels, name=role_skill_name)
+                await self.set_channel_permissions(channel, role, True)
+                await channel.send(f"{message.author.mention}, you now have access to the **{role_skill_name}** channel!")
             return
-
 
     async def set_channel_permissions(self, channel, role, permission):
         """Sets permissions for the given role in a specific channel.
@@ -185,7 +199,6 @@ class Challenge(commands.Cog):
                 'completed_challenges': 0
             })
             await channel.send(f'Welcome {member.mention}!')
-
 
 
 async def setup(bot):

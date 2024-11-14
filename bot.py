@@ -26,10 +26,7 @@ async def on_ready():
     await bot.load_extension("cogs.suggest")
     await bot.load_extension("cogs.join")
     await bot.load_extension("cogs.available")
-    print("loading challenges")
     await bot.load_extension("cogs.challenge")
-    print("loaded! challenges")
-
-
+    await bot.load_extension("cogs.misc")
 
 bot.run(TOKEN)
