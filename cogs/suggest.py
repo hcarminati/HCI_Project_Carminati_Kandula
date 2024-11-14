@@ -172,17 +172,20 @@ class Suggest(commands.Cog):
         database_lvl1 = db[f"{name}-lvl-1"]
         database_lvl1.create_collection("challenges")
         database_lvl1.create_collection("challenge_counter")
+        database_lvl1.get_collection("challenge_counter").insert_one({'_id': "counter", 'count': 0})
         database_lvl1.create_collection("users")
 
 
         database_lvl2 = db[f"{name}-lvl-2"]
         database_lvl2.create_collection("challenges")
         database_lvl2.create_collection("challenge_counter")
+        database_lvl2.get_collection("challenge_counter").insert_one({'_id': "counter", 'count': 0})
         database_lvl2.create_collection("users")
 
         database_lvl3 = db[f"{name}-lvl-3"]
         database_lvl3.create_collection("challenges")
         database_lvl3.create_collection("challenge_counter")
+        database_lvl3.get_collection("challenge_counter").insert_one({'_id': "counter", 'count': 0})
         database_lvl3.create_collection("users")
 
 
