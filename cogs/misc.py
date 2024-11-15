@@ -7,6 +7,8 @@ class Misc(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        print(f'misc cog')
+
 
     @commands.command()
     async def peptalk(self, ctx):

@@ -4,6 +4,8 @@ from discord.ext import commands
 class Complete(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        print(f'complete cog')
+
 
     @commands.command(name="complete", help="Complete a challenge.")
     async def complete(self, ctx, *, question=None):

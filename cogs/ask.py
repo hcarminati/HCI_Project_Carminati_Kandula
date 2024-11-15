@@ -17,6 +17,8 @@ def chat_gpt(prompt):
 class Ask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        print(f'ask cog')
+
         self.requests_made = 0
 
     @commands.command(name="ask", help="Ask the bot a question.")

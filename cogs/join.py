@@ -4,6 +4,8 @@ from discord.ext import commands
 class Join(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        print(f'join cog')
+
 
     @commands.command(name="join", help="Join a skill channel. Usage: $join <skill_name>")
     async def join(self, ctx, skill_name: str):

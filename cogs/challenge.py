@@ -21,7 +21,7 @@ except Exception as e:
 class Challenge(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        print("cog initialized")
+        print("challenge cog")
         # self.init_users()
 
         self.challenge.start()
@@ -36,7 +36,7 @@ class Challenge(commands.Cog):
             else:
                 print(guild.name)
 
-    @tasks.loop(seconds=3600)
+    @tasks.loop(seconds=180)
     async def challenge(self):
         guild = self.guild()
         for channel in guild.text_channels:
@@ -120,7 +120,7 @@ class Challenge(commands.Cog):
             title=f"Challenge #{challenge.get('_id')}: \n{challenge.get('title')}",
             description= f"{challenge.get('description')}\n\n\n"
                         "To complete this challenge, send your entry along with the command "
-                        "```$submit```  \n*and the # of the challenge* " ,
+                        "```$submit <and the # of the challenge>```  \n " ,
             color=discord.Color.orange()
         )
         return embed

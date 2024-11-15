@@ -22,6 +22,7 @@ async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
     # Load the cog
+
     await bot.load_extension("cogs.ask")
     await bot.load_extension("cogs.complete")
     await bot.load_extension("cogs.suggest")
@@ -31,5 +32,6 @@ async def on_ready():
     await bot.load_extension("cogs.misc")
 
     await bot.load_extension("cogs.send")
+    print("cogs loaded!")
 
 bot.run(TOKEN)

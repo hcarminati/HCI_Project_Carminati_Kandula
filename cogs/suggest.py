@@ -21,6 +21,8 @@ class Suggest(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.polls = {}
+        print(f'suggest cog')
+
 
     @commands.command(name="suggest", help="Suggest a new channel.")
     async def suggest(self, ctx, *, channel_name: str):
@@ -60,7 +62,7 @@ class Suggest(commands.Cog):
             'reactors': []  # List to track users who reacted with 👍
         }
 
-        await asyncio.sleep(2)  # 86400 seconds = 24 hours
+        await asyncio.sleep(10)  # 86400 seconds = 24 hours
 
         poll = self.polls.pop(message.id, None)
         if poll:

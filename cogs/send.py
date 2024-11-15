@@ -4,6 +4,7 @@ from discord.ext import commands
 class Send(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        print(f'send cog')
 
     @commands.command(name="send", help="blah")
     async def send(self, ctx, channel_name: str, message: str):

@@ -4,6 +4,7 @@ from discord.ext import commands
 
 class Available(commands.Cog):
     def __init__(self, bot):
+        print(f'available cog')
         self.bot = bot
 
     @commands.command(name="available", help="List all available skill channels or search by skill name.")
@@ -62,7 +63,8 @@ class Available(commands.Cog):
                 title="Available Skills to Join",
                 description="Join any skill by using $join <skill_name>.\n\n"
                             "Search for a skill by providing a keyword after the command. "
-                            "For example: `!available coding`.\n",
+                            "For example: `$available drawing`.\n"
+                            "**replace 'drawing' with the skill you wish to join!!",
                 color=discord.Color.green()
             )
 
