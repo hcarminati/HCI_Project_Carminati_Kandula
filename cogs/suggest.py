@@ -66,10 +66,12 @@ class Suggest(commands.Cog):
         if poll:
             message = await ctx.fetch_message(message.id)
             yes_percentage = (poll['votes_yes'] / poll['total_votes']) * 100 if poll['total_votes'] > 0 else 0
+            print(yes_percentage)
 
             # If 25% or more vote "Yes", create the channels and category
             if yes_percentage >= 25:
                 guild = ctx.guild
+                print(yes_percentage)
 
                 # Create the category for the skill
                 category = await guild.create_category(f"{poll['channel_name']}")
@@ -97,12 +99,15 @@ class Suggest(commands.Cog):
                 self.create_databases(channel_name)
 
                 for user_id in poll['reactors']:
+                    print("user_id:", user_id)
                     user = ctx.guild.get_member(user_id)
+                    print("user: ", user)
                     if user:
                         role_lvl_1 = discord.utils.get(guild.roles, name=f"{poll['channel_name']}-lvl-1")
-                        if role_lvl_1 and role_lvl_1 not in user.roles:
-                            await user.add_roles(role_lvl_1)
-                            await lvl_1_channel.send(f"{user.mention} has been assigned the {role_lvl_1.name} role.")
+                        print("role_lvl_1:", role_lvl_1)
+                        # if role_lvl_1 and role_lvl_1 not in user.roles:
+                        await user.add_roles(role_lvl_1)
+                        await lvl_1_channel.send(f"{user.mention} has been assigned the {role_lvl_1.name} role.")
 
                 await message.reply(
                     f"Poll concluded! A new category and channels for '{poll['channel_name']}' have been created.")

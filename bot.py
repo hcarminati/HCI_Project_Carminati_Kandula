@@ -16,6 +16,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="$", intents=intents)
 
+
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
@@ -28,5 +29,7 @@ async def on_ready():
     await bot.load_extension("cogs.available")
     await bot.load_extension("cogs.challenge")
     await bot.load_extension("cogs.misc")
+
+    await bot.load_extension("cogs.send")
 
 bot.run(TOKEN)
