@@ -12,7 +12,7 @@ class Available(commands.Cog):
         """Lists all the available skill categories and their levels or search for specific skills."""
         if ctx.channel.name != "join-new-skill":
             join_channel = discord.utils.get(ctx.guild.text_channels, name="join-new-skill")
-            await ctx.send(f"You can only use the join command in the {join_channel.mention} channel.")
+            await ctx.send(f"You can only use the $available command in the {join_channel.mention} channel.")
             return
 
         categories = sorted(ctx.guild.categories, key=lambda category: category.name.lower())
@@ -61,10 +61,12 @@ class Available(commands.Cog):
 
             embed = discord.Embed(
                 title="Available Skills to Join",
-                description="Join any skill by using $join <skill_name>.\n\n"
+                description="Join any skill by using `$join <skill>`.\n"
+                            "*Replace <skill> with the skill you want to join \n\n"
                             "Search for a skill by providing a keyword after the command. "
                             "For example: `$available drawing`.\n"
-                            "**replace 'drawing' with the skill you wish to join!!",
+                            "*Replace drawing with a skill you wish to see the availability.\n\n"
+                            "Available Skills: \n",
                 color=discord.Color.green()
             )
 

@@ -6,22 +6,15 @@ class Join(commands.Cog):
         self.bot = bot
         print(f'join cog')
 
-
     @commands.command(name="join", help="Join a skill channel. Usage: $join <skill_name>")
-    async def join(self, ctx, skill_name: str):
+    async def join(self, ctx, *, skill_name: str):
         """Allows users to join a skill channel by skill name."""
-
-        if ctx.channel.name != "join-new-skill":
-            join_channel = discord.utils.get(ctx.guild.text_channels, name="join-new-skill")
-            await ctx.send(f"You can only use the join command in the {join_channel.mention} channel.")
-            return
 
         skill_name = skill_name.lower()
         category = discord.utils.get(ctx.guild.categories, name=skill_name)
 
         if not category:
-            await ctx.send(
-                f"Sorry, no such skill category '{skill_name}' exists. Please choose from the available skills.")
+            await ctx.send(f"Sorry, no such skill category '{skill_name}' exists. Please choose from the available skills.")
             return
 
         # find role associated with first level
@@ -53,10 +46,7 @@ class Join(commands.Cog):
             await ctx.send(f"Sorry, there is no channel for {role_skill_name} yet.")
 
     async def set_channel_permissions(self, channel, role, permission):
-        """Sets permissions for the given role in a specific channel.
-            - Deny @everyone
-            - Allow specific role
-        """
+        """Sets permissions for the given role in a specific channel."""
         overwrites = {
             channel.guild.default_role: discord.PermissionOverwrite(read_messages=False),
             role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
@@ -68,12 +58,42 @@ class Join(commands.Cog):
         if message.channel.name != "join-new-skill":
             return
 
-        if message.content.startswith('$') \
-                and not message.content.startswith('join') | message.content.startswith('available'):
+        if message.content.startswith('$') and not (message.content.startswith('join') or message.content.startswith('available')):
             await message.delete()
-            await message.channel.send(
-                f"{message.author.mention}, you can only use the `available` and `join` command in this channel.")
             return
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        """Handles command errors gracefully."""
+        if ctx.command.name == "suggest" and ctx.channel.name != "suggest-new-skill":
+            suggest_channel = discord.utils.get(ctx.guild.text_channels, name="suggest-new-skill")
+            await ctx.send(f"You can only use the suggest command in the {suggest_channel.mention} channel.")
+            return
+
+        if isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == 'channel_name':
+                await ctx.send("You need to specify a skill name. Usage: `suggest <skill>` "
+                               "Replace <skill> with the skill you want to suggest.")
+                return
+
+        if ctx.command.name == "join" and ctx.channel.name != "join-new-skill":
+            join_channel = discord.utils.get(ctx.guild.text_channels, name="join-new-skill")
+            await ctx.send(f"You can only use the $join command in the {join_channel.mention} channel.")
+            return
+
+        if isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == 'skill_name':
+                await ctx.send("You need to specify a skill name. Usage: `$join <skill>` "
+                               "Replace <skill> with the skill you want to join.")
+                return
+
+        if isinstance(error, commands.CommandNotFound):
+            await ctx.send("Sorry, I couldn't find that command. Please make sure you're using the correct command.")
+            return
+
+        else:
+            print(f"Error occurred: {error}")
+            await ctx.send("An unexpected error occurred. Please try again later.")
 
 async def setup(bot):
     await bot.add_cog(Join(bot))
