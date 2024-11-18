@@ -31,8 +31,8 @@ class Suggest(commands.Cog):
             await ctx.send(f"You can only use the $suggest command in the {suggest_channel.mention} channel.")
             return
 
-        existing_category = discord.utils.get(ctx.guild.categories, name=f"{channel_name}")
-        if existing_category:
+        existing_channels = [channel for channel in ctx.guild.text_channels if channel.name.startswith(channel_name)]
+        if existing_channels:
             existing_channels = {channel.name: channel for channel in ctx.guild.text_channels}
             existing_channel = existing_channels[f"{channel_name}-lvl-1"]
             await ctx.send(f"A channel for learning about '{channel_name}' already exists {existing_channel.mention}")
@@ -42,7 +42,7 @@ class Suggest(commands.Cog):
             title="New Channel Suggestion",
             description=f"**Suggested Skill/Channel Name:** {channel_name}\n\n"
                         "React with 👍 to approve or 👎 to reject the suggestion. "
-                        "The poll will last for 24 hours.",
+                        "The poll will last for 1 minute.",
             color=discord.Color.blue()
         )
 
@@ -62,7 +62,7 @@ class Suggest(commands.Cog):
             'reactors': []  # List to track users who reacted with 👍
         }
 
-        await asyncio.sleep(10)  # 86400 seconds = 24 hours
+        await asyncio.sleep(60)  # 86400 seconds = 24 hours
 
         poll = self.polls.pop(message.id, None)
         if poll:
