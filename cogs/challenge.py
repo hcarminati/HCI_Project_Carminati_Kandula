@@ -1,10 +1,13 @@
 import os
-import random
-from pprint import pprint
+import typing
+from pyexpat.errors import messages
 
 import discord
 import pymongo
 from discord.ext import commands, tasks
+from openai import OpenAI
+import json
+
 
 GUILD = os.getenv('DISCORD_GUILD')
 DB_USERNAME = os.environ.get('DISCORD_DB_USERNAME')
@@ -18,13 +21,30 @@ try:
 except Exception as e:
     print(e)
 
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY")
+)
+
+def chat_gpt(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini-2024-07-18",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content.strip()
+
+
+
+
+
+
 class Challenge(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         print("challenge cog")
         # self.init_users()
 
-        self.challenge.start()
+        # self.challenge.start()
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 
@@ -36,7 +56,10 @@ class Challenge(commands.Cog):
             else:
                 print(guild.name)
 
-    @tasks.loop(seconds=180)
+
+
+
+    @tasks.loop(seconds=3600)
     async def challenge(self):
         guild = self.guild()
         for channel in guild.text_channels:
@@ -46,24 +69,52 @@ class Challenge(commands.Cog):
                     challenges = database.get_collection('challenges')
                     challenge_counter = database.get_collection('challenge_counter').find_one({'_id': "counter"})
                     count = int(challenge_counter.get('count'));
-                    print(count)
-                    c = challenges.find_one({'_id': count})
-                    if count > len(list(challenges.find({}))):
-                        bad_request ="Oops! get back to us later! We're coming up with some more ideas."
-                        print(bad_request)
-                        await channel.send(embed=bad_request)
-                    else:
-                        if not c.get('completed'):
-                            challenge_message = self.create_embed(c)
-                            await channel.send(embed=challenge_message)
-                            self.update_challenge(challenges, c)
-                            # print(c.get('completed'))
-                        (database.get_collection('challenge_counter')
-                         .update_one({'_id': "counter"}, {"$set": {"count": count + 1}}))
-                        print(int(challenge_counter.get('count')))
+                    gptanswer = chat_gpt(f"[No Prose] [Output only JSON] {channel.name} challenge, 'title','description'")
+                    index = gptanswer.index('{')
+                    result = gptanswer[index:]
+                    response = result[:result.index('}') + 1]
+                    res = json.loads(response)
+                    message = self.create_embed(res, count)
+                    await channel.send(embed=message)
+
+                    dict = {"_id": count, "title": res.get("title"), "description": res.get("description")}
+                    challenges.insert_one(dict)
+                    (database.get_collection('challenge_counter')
+                    .update_one({'_id': "counter"}, {"$set": {"count": count + 1}}))
+                    print(int(challenge_counter.get('count')))
                 except Exception as e:
-                    await channel.send(f"Oops! Looks like we don't have any content right now... Check in later!")
-        print("************")
+                     await channel.send(f"Oops! Looks like we don't have any content right now... Check in later!")
+        print('_____')
+
+
+    # @tasks.loop(seconds=3600)
+    # async def challenge(self):
+    #     guild = self.guild()
+    #     for channel in guild.text_channels:
+    #         if channel.name in db.list_database_names():
+    #             database = db.get_database(channel.name)
+    #             try:
+    #                 challenges = database.get_collection('challenges')
+    #                 challenge_counter = database.get_collection('challenge_counter').find_one({'_id': "counter"})
+    #                 count = int(challenge_counter.get('count'));
+    #                 print(count)
+    #                 c = challenges.find_one({'_id': count})
+    #                 if count > len(list(challenges.find({}))):
+    #                     bad_request ="Oops! get back to us later! We're coming up with some more ideas."
+    #                     print(bad_request)
+    #                     await channel.send(embed=bad_request)
+    #                 else:
+    #                     if not c.get('completed'):
+    #                         challenge_message = self.create_embed(c)
+    #                         await channel.send(embed=challenge_message)
+    #                         self.update_challenge(challenges, c)
+    #                         # print(c.get('completed'))
+    #                     (database.get_collection('challenge_counter')
+    #                      .update_one({'_id': "counter"}, {"$set": {"count": count + 1}}))
+    #                     print(int(challenge_counter.get('count')))
+    #             except Exception as e:
+    #                 await channel.send(f"Oops! Looks like we don't have any content right now... Check in later!")
+    #     print("************")
 
     # helper function to update the challenge counter
     @staticmethod
@@ -95,7 +146,7 @@ class Challenge(commands.Cog):
         db_name = ctx.channel.name
         print(db_name)
         challenges = db.get_database(db_name).get_collection('challenges')
-        challenge = challenges.find_one({'completed': False})
+        challenge = challenges.find_one({'': False})
         print(challenge)
         message = self.create_request_embed(challenge, ctx)
 
@@ -109,18 +160,20 @@ class Challenge(commands.Cog):
             description=f"New challenge requested by {ctx.author.mention} \n\n\n"
                         f"{challenge.get('description')}\n\n\n"
                         "To complete this challenge, send your entry along with the command "
-                        "```$submit``` *and the # of the challenge* ",
+                        "```$submit *and the # of the challenge* ```"
+                        "```eg: $submit 2 ```",
             color=discord.Color.orange()
         )
         return embed
 
     # embed for challenges.
-    def create_embed(self, challenge,):
+    def create_embed(self, challenge, counter):
         embed = discord.Embed(
-            title=f"Challenge #{challenge.get('_id')}: \n{challenge.get('title')}",
+            title=f"Challenge #{counter}: \n{challenge.get('title')}",
             description= f"{challenge.get('description')}\n\n\n"
                         "To complete this challenge, send your entry along with the command "
-                        "```$submit <and the # of the challenge>```  \n " ,
+                       "```$submit *and the # of the challenge* ```\n"
+                        "```eg: $submit 2 ```",
             color=discord.Color.orange()
         )
         return embed
@@ -131,12 +184,14 @@ class Challenge(commands.Cog):
 
     # command to submit an entry to a challenge.
     @commands.command()
-    async def submit(self, ctx, submission):
-        if submission.isnumeric():
-            challenge_number = int(submission)
-            challenges = self.get_challenges(ctx.channel.name)
-            c = challenges.find_one({'_id': challenge_number})
-            await ctx.send(f"Congrats for completing Challenge #{c.get('_id')}\n"
+    async def submit(self, ctx, submission, other_text: typing.Optional[str] = None):
+        # if submission.isnumeric():
+
+        challenge_number = int(submission)
+        print(challenge_number)
+        challenges = self.get_challenges(ctx.channel.name)
+        c = challenges.find_one({'_id': challenge_number})
+        await ctx.send(f"Congrats for completing Challenge #{c.get('_id')}\n"
                            f"{c.get('title')}\n You're doing great!")
 
     #resets database. used only by us
@@ -161,12 +216,13 @@ class Challenge(commands.Cog):
             author =  message.author.name
             database = db.get_database(level)
             user = database.get_collection('users').find_one({"_id": author})
-            print(user)
+            # print(user)
             count = int(user.get('completed_challenges'))
             (database.get_collection('users').update_one({"_id": author},
                                                         {"$set": {'completed_challenges': count + 1}}))
             print(f"{message.author.name} completed {count} challenges")
-            if count > 3 and level[:-1] != 3:
+
+            if count == 1 and level[:-1] != 3:
                 current_lvl = level[:-1]
                 next_lvl = int(level[-1]) + 1
                 role_skill_name = f"{current_lvl}{next_lvl}"
@@ -174,14 +230,13 @@ class Challenge(commands.Cog):
 
                 channel = discord.utils.get(message.guild.text_channels, name=role_skill_name)
                 await self.set_channel_permissions(channel, role, True)
+                await user.add_roles(role)
                 await channel.send(f"{message.author.mention}, you now have access to the **{role_skill_name}** channel!")
+                await channel.send(f"{user.mention} has been assigned the {role.name} role.")
             return
 
     async def set_channel_permissions(self, channel, role, permission):
-        """Sets permissions for the given role in a specific channel.
-            - Deny @everyone
-            - Allow specific role
-        """
+        """Sets permissions for the given role in a specific channel."""
         overwrites = {
             channel.guild.default_role: discord.PermissionOverwrite(read_messages=False),
             role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
