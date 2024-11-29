@@ -1,5 +1,6 @@
 import os
 import typing
+from itertools import count
 from pyexpat.errors import messages
 
 import discord
@@ -188,7 +189,7 @@ class Challenge(commands.Cog):
         # if submission.isnumeric():
 
         challenge_number = int(submission)
-        print(challenge_number)
+        # print(challenge_number)
         challenges = self.get_challenges(ctx.channel.name)
         c = challenges.find_one({'_id': challenge_number})
         await ctx.send(f"Congrats for completing Challenge #{c.get('_id')}\n"
@@ -207,6 +208,9 @@ class Challenge(commands.Cog):
                     'completed_challenges': 0,
                 })
 
+
+
+
     #Handles when the user completes challenges...
     # and if their count of completed challenges has met the requirements to level up
     @commands.Cog.listener()
@@ -215,24 +219,37 @@ class Challenge(commands.Cog):
         if message.content.startswith('$submit'):
             author =  message.author.name
             database = db.get_database(level)
-            user = database.get_collection('users').find_one({"_id": author})
-            # print(user)
-            count = int(user.get('completed_challenges'))
-            (database.get_collection('users').update_one({"_id": author},
-                                                        {"$set": {'completed_challenges': count + 1}}))
-            print(f"{message.author.name} completed {count} challenges")
+            users = database.get_collection('users')
+            user = users.find_one({"_id": {"$eq": author}})
 
+            if user:
+
+                count = int(user.get('completed_challenges'))
+                (database.get_collection('users').update_one({"_id": author},
+                                                             {"$set": {'completed_challenges': count + 1}}))
+                print(f"{message.author.name} completed {count} challenges")
+            else:
+                users.insert_one({
+                    '_id': author,
+                    'completed_challenges': 1,
+                })
+                count = 1;
+
+            print(count)
             if count == 1 and level[:-1] != 3:
                 current_lvl = level[:-1]
                 next_lvl = int(level[-1]) + 1
                 role_skill_name = f"{current_lvl}{next_lvl}"
                 role = discord.utils.get(message.guild.roles, name=role_skill_name)
 
+                print(role)
+
                 channel = discord.utils.get(message.guild.text_channels, name=role_skill_name)
                 await self.set_channel_permissions(channel, role, True)
-                await user.add_roles(role)
-                await channel.send(f"{message.author.mention}, you now have access to the **{role_skill_name}** channel!")
-                await channel.send(f"{user.mention} has been assigned the {role.name} role.")
+                await message.author.add_roles(role)
+                print(author, role)
+                await message.channel.send(f"Congratulations {message.author.mention}, you leveled up! You now have access to the **{role_skill_name}** channel!")
+                await channel.send(f"{message.author.mention} has been assigned the {role.name} role.")
             return
 
     async def set_channel_permissions(self, channel, role, permission):
@@ -242,6 +259,11 @@ class Challenge(commands.Cog):
             role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
         }
         await channel.edit(overwrites=overwrites)
+
+
+
+
+
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
