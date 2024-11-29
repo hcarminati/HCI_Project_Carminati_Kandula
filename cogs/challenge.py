@@ -59,7 +59,7 @@ class Challenge(commands.Cog):
 
 
 
-    @tasks.loop(seconds=3600)
+    @tasks.loop(hours=12)
     async def challenge(self):
         guild = self.guild()
         for channel in guild.text_channels:
@@ -87,7 +87,7 @@ class Challenge(commands.Cog):
         print('_____')
 
 
-    # @tasks.loop(seconds=3600)
+    # @tasks.loop(seconds=600)
     # async def challenge(self):
     #     guild = self.guild()
     #     for channel in guild.text_channels:
@@ -146,7 +146,7 @@ class Challenge(commands.Cog):
         db_name = ctx.channel.name
         print(db_name)
         challenges = db.get_database(db_name).get_collection('challenges')
-        challenge = challenges.find_one({'': False})
+        challenge = challenges.aggregate([{"$sample": {"size": 1}}]).next()
         print(challenge)
         message = self.create_request_embed(challenge, ctx)
 
