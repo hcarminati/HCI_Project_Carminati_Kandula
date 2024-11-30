@@ -32,6 +32,7 @@ class Available(commands.Cog):
             await ctx.send("😢 No available skills to join at the moment.")
             return
 
+        # If a search term is provided, filter the available skills
         if search:
             search = search.lower()
 
@@ -50,6 +51,10 @@ class Available(commands.Cog):
 
             available_skills = filtered_skills
 
+            search_phrase = f"Here are available skills based on your search for '{search}':"
+        else:
+            search_phrase = "Here are all the available skills to join:\n\nYou can search for specific skills by adding a keyword to the command. Example: `$available drawing` to find drawing-related skills."
+
         # Pagination
         per_page = 10
         total_pages = (len(available_skills) // per_page) + (1 if len(available_skills) % per_page else 0)
@@ -61,11 +66,9 @@ class Available(commands.Cog):
 
             embed = discord.Embed(
                 title="📚 Available Skills to Join",
-                description="Join any skill by using `$join <skill>`.\n"
-                            "*Replace <skill> with the skill you want to join \n\n"
-                            "Search for a skill by providing a keyword after the command. "
-                            "For example: `$available drawing`.\n"
-                            "*Replace drawing with a skill you wish to see the availability.\n\n"
+                description=f"{search_phrase}\n\n"
+                            "Join any skill by using `$join <skill>`.\n"
+                            "*Replace <skill> with the skill you want to join.\n\n"
                             "Available Skills: \n",
                 color=discord.Color.green()
             )
