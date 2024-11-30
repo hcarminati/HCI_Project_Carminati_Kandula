@@ -138,7 +138,7 @@ class Challenge(commands.Cog):
 
 
 # Command for if users choose to accept a new challenge.
-    @commands.command()
+    @commands.command(help="Request a new challenge - Usage: $new")
     async def new(self, ctx):
         if ctx.channel.name == "join-new-skill" or ctx.channel.name == "suggest-new-skill":
             await ctx.send(
@@ -179,12 +179,12 @@ class Challenge(commands.Cog):
         )
         return embed
 
-    @commands.command()
+    @commands.command(help="Need flex tape?")
     async def flex(self, ctx):
         await ctx.send('Tape! (but not any ordinary tape)')
 
     # command to submit an entry to a challenge.
-    @commands.command()
+    @commands.command(help="Join a skill channel - Usage: $join <skill_name>")
     async def submit(self, ctx, submission, other_text: typing.Optional[str] = None):
         # if submission.isnumeric():
 

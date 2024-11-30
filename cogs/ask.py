@@ -21,7 +21,7 @@ class Ask(commands.Cog):
 
         self.requests_made = 0
 
-    @commands.command(name="ask", help="Ask the bot a question.")
+    @commands.command(name="ask", help="Ask a question in a skill channel - Usage: $ask <question>")
     async def ask(self, ctx, *, question=None):
         print(f"Running command 'ask' with question: {question}")
 
@@ -36,6 +36,8 @@ class Ask(commands.Cog):
 
         username = ctx.author.name
         await ctx.send(f"{ctx.author.mention} asked: {question}")
+
+        status_message = await ctx.send(f"**SkillShareBot is typing...** Please wait a moment while I find the answer!")
 
         try:
             response = chat_gpt(question)

@@ -1,5 +1,4 @@
 import os
-
 import discord
 import pymongo
 from discord.ext import commands
@@ -21,10 +20,9 @@ class Suggest(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.polls = {}
-        print(f'suggest cog')
+        print(f'Suggest cog loaded')
 
-
-    @commands.command(name="suggest", help="Suggest a new channel.")
+    @commands.command(name="suggest", help="Suggest a new channel. - Usage: $suggest <new-skill>")
     async def suggest(self, ctx, *, channel_name: str):
         if ctx.channel.name != "suggest-new-skill":
             suggest_channel = discord.utils.get(ctx.guild.text_channels, name="suggest-new-skill")
@@ -62,7 +60,7 @@ class Suggest(commands.Cog):
             'reactors': []  # List to track users who reacted with 👍
         }
 
-        await asyncio.sleep(60)  # 86400 seconds = 24 hours
+        await asyncio.sleep(60)  # Poll duration: 60 seconds
 
         poll = self.polls.pop(message.id, None)
         if poll:
@@ -71,17 +69,22 @@ class Suggest(commands.Cog):
             print(yes_percentage)
 
             # If 25% or more vote "Yes", create the channels and category
-            if yes_percentage >= 25:
+            if yes_percentage >= 1:
                 guild = ctx.guild
                 print(yes_percentage)
 
                 # Create the category for the skill
                 category = await guild.create_category(f"{poll['channel_name']}")
 
-                # Create the channels for the skill levels
+                # Create text channels for the skill levels
                 lvl_1_channel = await guild.create_text_channel(f"{poll['channel_name']}-lvl-1", category=category)
                 lvl_2_channel = await guild.create_text_channel(f"{poll['channel_name']}-lvl-2", category=category)
                 lvl_3_channel = await guild.create_text_channel(f"{poll['channel_name']}-lvl-3", category=category)
+
+                # Create voice channels for the skill levels
+                lvl_1_voice = await guild.create_voice_channel(f"{poll['channel_name']}-lvl-1-voice", category=category)
+                lvl_2_voice = await guild.create_voice_channel(f"{poll['channel_name']}-lvl-2-voice", category=category)
+                lvl_3_voice = await guild.create_voice_channel(f"{poll['channel_name']}-lvl-3-voice", category=category)
 
                 # Create roles for the skill levels
                 roles = []
@@ -93,10 +96,15 @@ class Suggest(commands.Cog):
                         role = await guild.create_role(name=role_name)
                     roles.append(role)
 
-                # Set channel permissions based on roles
+                # Set text channel permissions based on roles
                 await self.set_channel_permissions(lvl_1_channel, roles[0])
                 await self.set_channel_permissions(lvl_2_channel, roles[1])
                 await self.set_channel_permissions(lvl_3_channel, roles[2])
+
+                # Set voice channel permissions based on roles
+                await self.set_voice_channel_permissions(lvl_1_voice, roles[0])
+                await self.set_voice_channel_permissions(lvl_2_voice, roles[1])
+                await self.set_voice_channel_permissions(lvl_3_voice, roles[2])
 
                 self.create_databases(channel_name)
 
@@ -107,7 +115,6 @@ class Suggest(commands.Cog):
                     if user:
                         role_lvl_1 = discord.utils.get(guild.roles, name=f"{poll['channel_name']}-lvl-1")
                         print("role_lvl_1:", role_lvl_1)
-                        # if role_lvl_1 and role_lvl_1 not in user.roles:
                         await user.add_roles(role_lvl_1)
                         await lvl_1_channel.send(f"{user.mention} has been assigned the {role_lvl_1.name} role.")
 
@@ -164,16 +171,20 @@ class Suggest(commands.Cog):
             return
 
     async def set_channel_permissions(self, channel, role):
-        """Sets the permissions for the given channel to allow only the specific role to access it.
-            - Deny @everyone
-            - Allow specific skill role
-        """
+        """Sets the permissions for the given text channel to allow only the specific role to access it."""
         overwrites = {
             channel.guild.default_role: discord.PermissionOverwrite(read_messages=False),
             role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
         }
         await channel.edit(overwrites=overwrites)
 
+    async def set_voice_channel_permissions(self, voice_channel, role):
+        """Sets the permissions for the given voice channel to allow only the specific role to join."""
+        overwrites = {
+            voice_channel.guild.default_role: discord.PermissionOverwrite(connect=False),
+            role: discord.PermissionOverwrite(connect=True)
+        }
+        await voice_channel.edit(overwrites=overwrites)
 
     def create_databases(self, name):
         database_lvl1 = db[f"{name}-lvl-1"]

@@ -24,7 +24,6 @@ async def on_ready():
     # Load the cog
 
     await bot.load_extension("cogs.ask")
-    await bot.load_extension("cogs.complete")
     await bot.load_extension("cogs.suggest")
     await bot.load_extension("cogs.join")
     await bot.load_extension("cogs.available")

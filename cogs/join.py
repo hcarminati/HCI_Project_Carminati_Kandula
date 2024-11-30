@@ -6,7 +6,7 @@ class Join(commands.Cog):
         self.bot = bot
         print(f'join cog')
 
-    @commands.command(name="join", help="Join a skill channel. Usage: $join <skill_name>")
+    @commands.command(name="join", help="Join a skill channel - Usage: $join <skill_name>")
     async def join(self, ctx, *, skill_name: str):
         """Allows users to join a skill channel by skill name."""
 
