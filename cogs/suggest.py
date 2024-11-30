@@ -181,10 +181,14 @@ class Suggest(commands.Cog):
     async def set_voice_channel_permissions(self, voice_channel, role):
         """Sets the permissions for the given voice channel to allow only the specific role to join."""
         overwrites = {
-            voice_channel.guild.default_role: discord.PermissionOverwrite(connect=False),
+            voice_channel.guild.default_role: discord.PermissionOverwrite(connect=False), 
             role: discord.PermissionOverwrite(connect=True)
         }
-        await voice_channel.edit(overwrites=overwrites)
+
+        try:
+            await voice_channel.edit(overwrites=overwrites)
+        except discord.DiscordException as e:
+            print(f"Error setting permissions for {voice_channel.name}: {e}")
 
     def create_databases(self, name):
         database_lvl1 = db[f"{name}-lvl-1"]
