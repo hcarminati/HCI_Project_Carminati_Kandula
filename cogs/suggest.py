@@ -33,7 +33,7 @@ class Suggest(commands.Cog):
         if existing_channels:
             existing_channels = {channel.name: channel for channel in ctx.guild.text_channels}
             existing_channel = existing_channels[f"{channel_name}-lvl-1"]
-            await ctx.send(f"🔥 A channel for '{channel_name}' already exists! Check it out here: {existing_channel.mention}")
+            await ctx.send(f"🔥 A channel for '{channel_name}' already exists!")
             return
 
         embed = discord.Embed(
