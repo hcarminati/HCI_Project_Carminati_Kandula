@@ -29,11 +29,10 @@ class Join(commands.Cog):
         # if not: add the role
         if role not in ctx.author.roles:
             await ctx.author.add_roles(role)
-            await ctx.send(
-                f"**{ctx.author.name}**, you have been given the {role_skill_name} role "
-                f"and now have access to the **{skill_name}** channel!")
+            await ctx.send(f"🔓 You've unlocked access to the **{role_skill_name}** channel! Time to learn!")
         else:
-            await ctx.send(f"**{ctx.author.name}**, you already have the {role_skill_name} role.")
+            await ctx.send(f"😎 **{ctx.author.name}**, you already have the {role_skill_name} role.")
+            return
 
         # Find channel associated with skill
         channel = discord.utils.get(ctx.guild.text_channels, name=role_skill_name)
@@ -41,9 +40,8 @@ class Join(commands.Cog):
         if channel:
             # Set the channel permissions - allow user to view and send messages
             await self.set_channel_permissions(channel, role, True)
-            await ctx.send(f"You now have access to the **{role_skill_name}** channel!")
         else:
-            await ctx.send(f"Sorry, there is no channel for {role_skill_name} yet.")
+            await ctx.send(f"😎 **{ctx.author.name}**, you're already part of the **{role_skill_name}** squad!")
 
     async def set_channel_permissions(self, channel, role, permission):
         """Sets permissions for the given role in a specific channel."""
@@ -67,7 +65,7 @@ class Join(commands.Cog):
         """Handles command errors gracefully."""
         if ctx.command.name == "suggest" and ctx.channel.name != "suggest-new-skill":
             suggest_channel = discord.utils.get(ctx.guild.text_channels, name="suggest-new-skill")
-            await ctx.send(f"You can only use the suggest command in the {suggest_channel.mention} channel.")
+            await ctx.send(f"🤔 You can only use the suggest command in the {suggest_channel.mention} channel.")
             return
 
         if isinstance(error, commands.MissingRequiredArgument):
@@ -78,22 +76,22 @@ class Join(commands.Cog):
 
         if ctx.command.name == "join" and ctx.channel.name != "join-new-skill":
             join_channel = discord.utils.get(ctx.guild.text_channels, name="join-new-skill")
-            await ctx.send(f"You can only use the $join command in the {join_channel.mention} channel.")
+            await ctx.send(f"🚫 You can only use the `$join` command in the {join_channel.mention} channel! Please try again there.")
             return
 
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == 'skill_name':
-                await ctx.send("You need to specify a skill name. Usage: `$join <skill>` "
+                await ctx.send("🤔 You need to specify a skill name. Usage: `$join <skill>` "
                                "Replace <skill> with the skill you want to join.")
                 return
 
         if isinstance(error, commands.CommandNotFound):
-            await ctx.send("Sorry, I couldn't find that command. Please make sure you're using the correct command.")
+            await ctx.send("🚨 Sorry, I couldn't find that command. Please make sure you're using the correct command.")
             return
 
         else:
             print(f"Error occurred: {error}")
-            await ctx.send("An unexpected error occurred. Please try again later.")
+            await ctx.send("⚠️ Something went wrong. Please try again later")
 
 async def setup(bot):
     await bot.add_cog(Join(bot))

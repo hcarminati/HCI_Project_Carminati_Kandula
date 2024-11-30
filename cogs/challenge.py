@@ -70,6 +70,8 @@ class Challenge(commands.Cog):
                     challenges = database.get_collection('challenges')
                     challenge_counter = database.get_collection('challenge_counter').find_one({'_id': "counter"})
                     count = int(challenge_counter.get('count'));
+                    temp_message = await channel.send(
+                        "🔍 **SkillShareBot is typing...** We're searching for your challenge!")
                     gptanswer = chat_gpt(f"[No Prose] [Output only JSON] {channel.name} challenge, 'title','description'")
                     index = gptanswer.index('{')
                     result = gptanswer[index:]
@@ -141,24 +143,30 @@ class Challenge(commands.Cog):
     @commands.command(help="Request a new challenge - Usage: $new")
     async def new(self, ctx):
         if ctx.channel.name == "join-new-skill" or ctx.channel.name == "suggest-new-skill":
-            await ctx.send(
-                f"{ctx.author.mention}, you can not use the $challenge command in this channel."
-            )
+            await ctx.send(f"{ctx.author.mention}, you cannot use the $new challenge command in this channel. ❌")
+            return
+
         db_name = ctx.channel.name
-        print(db_name)
         challenges = db.get_database(db_name).get_collection('challenges')
-        challenge = challenges.aggregate([{"$sample": {"size": 1}}]).next()
-        print(challenge)
+
+        # Safely get a random challenge from the collection, if any exist
+        challenge = next(challenges.aggregate([{"$sample": {"size": 1}}]), None)
+
+        if challenge is None:
+            await ctx.send(f"⚠️ No challenges available at the moment. Please try again later!")
+            return
+
+        # Proceed with the normal flow if a challenge is found
         message = self.create_request_embed(challenge, ctx)
-
         await ctx.send(embed=message)
-        self.update_challenge(challenges, challenge)
 
+        # Optionally mark the challenge as 'requested' or do something else with it
+        self.update_challenge(challenges, challenge)
 
     def create_request_embed(self, challenge, ctx):
         embed = discord.Embed(
             title=f"Challenge #{challenge.get('_id')}: \n{challenge.get('title')}",
-            description=f"New challenge requested by {ctx.author.mention} \n\n\n"
+            description=f"New challenge requested by {ctx.author.mention} 💡\n\n\n"
                         f"{challenge.get('description')}\n\n\n"
                         "To complete this challenge, send your entry along with the command "
                         "```$submit *and the # of the challenge* ```"
@@ -170,7 +178,7 @@ class Challenge(commands.Cog):
     # embed for challenges.
     def create_embed(self, challenge, counter):
         embed = discord.Embed(
-            title=f"Challenge #{counter}: \n{challenge.get('title')}",
+            title=f"🎯 Challenge #{counter}: \n{challenge.get('title')}",
             description= f"{challenge.get('description')}\n\n\n"
                         "To complete this challenge, send your entry along with the command "
                        "```$submit *and the # of the challenge* ```\n"
@@ -192,8 +200,11 @@ class Challenge(commands.Cog):
         # print(challenge_number)
         challenges = self.get_challenges(ctx.channel.name)
         c = challenges.find_one({'_id': challenge_number})
-        await ctx.send(f"Congrats for completing Challenge #{c.get('_id')}\n"
-                           f"{c.get('title')}\n You're doing great!")
+        if c:
+            await ctx.send(f"🎉 Congrats for completing Challenge #{c.get('_id')}\n"
+                               f"{c.get('title')}\n You're doing great!")
+        else:
+            await ctx.send(f"⚠️ Challenge not found! Please make sure the challenge number is correct.")
 
     #resets database. used only by us
     def init_users(self):
@@ -248,7 +259,7 @@ class Challenge(commands.Cog):
                 await self.set_channel_permissions(channel, role, True)
                 await message.author.add_roles(role)
                 print(author, role)
-                await message.channel.send(f"Congratulations {message.author.mention}, you leveled up! You now have access to the **{role_skill_name}** channel!")
+                await message.channel.send(f"🎉 Congratulations {message.author.mention}, you leveled up! You now have access to the **{role_skill_name}** channel!")
                 await channel.send(f"{message.author.mention} has been assigned the {role.name} role.")
             return
 

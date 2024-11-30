@@ -27,30 +27,30 @@ class Ask(commands.Cog):
 
         if "-lvl-" not in ctx.channel.name:
             join_channel = discord.utils.get(ctx.guild.text_channels, name="join-new-skill")
-            await ctx.send(f"You can only use the ask command in skill channels.")
+            await ctx.send(f"{ctx.author.mention}, you can only use the ask command in skill channels. ❌")
             return
 
         if question is None:
-            await ctx.send("Please include your question in the same message after `$ask`.")
+            await ctx.send("🤔 Please include your question in the same message after `$ask`.")
             return
 
         username = ctx.author.name
         await ctx.send(f"{ctx.author.mention} asked: {question}")
 
-        status_message = await ctx.send(f"**SkillShareBot is typing...** Please wait a moment while I find the answer!")
+        status_message = await ctx.send(f"**💬 SkillShareBot is typing...** Please wait a moment while I find the answer!")
 
         try:
             response = chat_gpt(question)
             if response is None:
                 # If chat_gpt() returned None, that means there was an error.
                 await ctx.send(
-                    "Something went wrong while trying to get an answer. Please try asking your question again.")
+                    "🚨 Something went wrong while trying to get an answer. Please try asking your question again.")
             else:
                 await ctx.send(response)
 
         except Exception as e:
             # Catch any unexpected errors and inform the user
-            await ctx.send("An unexpected error occurred. Please try again later.")
+            await ctx.send("🚨 An unexpected error occurred. Please try again later.")
             print(f"Unexpected error: {e}")
 
 async def setup(bot):

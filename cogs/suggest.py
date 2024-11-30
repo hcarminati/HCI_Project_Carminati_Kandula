@@ -33,14 +33,14 @@ class Suggest(commands.Cog):
         if existing_channels:
             existing_channels = {channel.name: channel for channel in ctx.guild.text_channels}
             existing_channel = existing_channels[f"{channel_name}-lvl-1"]
-            await ctx.send(f"A channel for learning about '{channel_name}' already exists {existing_channel.mention}")
+            await ctx.send(f"🔥 A channel for '{channel_name}' already exists! Check it out here: {existing_channel.mention}")
             return
 
         embed = discord.Embed(
-            title="New Channel Suggestion",
+            title="🚀 New Channel Suggestion!",
             description=f"**Suggested Skill/Channel Name:** {channel_name}\n\n"
-                        "React with 👍 to approve or 👎 to reject the suggestion. "
-                        "The poll will last for 1 minute.",
+                        "React with 👍 to approve or 👎 to reject the suggestion! \n"
+                        "The poll will last for 1 minute ⏱️.",
             color=discord.Color.blue()
         )
 
@@ -119,9 +119,9 @@ class Suggest(commands.Cog):
                         await lvl_1_channel.send(f"{user.mention} has been assigned the {role_lvl_1.name} role.")
 
                 await message.reply(
-                    f"Poll concluded! A new category and channels for '{poll['channel_name']}' have been created.")
+                    f"🎉 Poll concluded! A new category and channels for '{poll['channel_name']}' have been created.")
             else:
-                await message.reply("Poll concluded! The new channel suggestion was rejected.")
+                await message.reply("🚫 Poll concluded! The new channel suggestion was rejected.")
 
             await message.unpin()
 
@@ -167,7 +167,7 @@ class Suggest(commands.Cog):
         if message.content.startswith('$') and not message.content.startswith('$suggest'):
             await message.delete()
             await message.channel.send(
-                f"{message.author.mention}, you can only use the `$suggest` command in this channel.")
+                f"Oops! 🚫 {message.author.mention}, you can only use the `$suggest` command in this channel.")
             return
 
     async def set_channel_permissions(self, channel, role):
