@@ -3,11 +3,10 @@
 ### **Team Name:** 404 Not Found 👾
 ## **Project Overview**
 This repository contains all the materials and documents related to the development of our skill building app. 
+### https://discord.gg/KFuNUbGPG2 
 
 ## **Project Overview**
 Picture a Northeastern student, juggling rigorous coursework, the pressure of building a competitive resume, and the constant comparison to peers. Amidst all this, they hesitate to explore hobbies or skills because they’re afraid of failure—or worse—judgment. Sound familiar? Many feel isolated and stuck, hesitant to explore new skills due to fear of judgment. The pressure to prioritize academics and careers leaves little room for personal growth. Students need a non-judgmental community to explore personal passions and grow collaboratively—not just focus on grades or careers. What if such a space existed?
-
-
 
 ## **Instructions**
 1. If you already have a Discord account, skip to step 4.
